@@ -2,19 +2,165 @@
 <head>
     <title id="stopwatch_on_title">00:00:00</title>
     <style>
-        body{background:#000000;color:white}button{width:150px;height:45px;border:3px soldi white;font-size:25px;border-radius:50px;background:#000000;color:white;cursor:pointer;outline:0}button:hover{background:aqua;border:solid 1px white;color:black}#stopwatch{font-size:250px;position:absolute;top:45%;left:50%;transform:translate(-50%,-55%)}#buttons{position:absolute;top:75%;left:48.4%;transform:translate(-51.6%,-45%)}#buttons li{display:inline;padding-left:50px}
+        body {
+            background: #000000;
+            color: white;
+        }
+        button {
+            width: 150px;
+            height: 45px;
+            border: 3px soldi white;
+            font-size: 25px;
+            border-radius: 50px;
+            background: #000000;
+            color: white;
+            cursor: pointer;
+            outline: 0;
+        }
+        button:hover {
+            background: aqua;
+            border: solid 1px white;
+            color: black;
+        }
+        #stopwatch {
+            font-size: 250px;
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%,-55%);
+            color: rgb(34, 255, 0);
+            font-weight: bold;
+        }
+        #buttons {
+            position: absolute;
+            top: 75%;
+            left: 48.4%;
+            transform: translate(-51.6%,-45%);
+        }
+        #buttons li {
+            display: inline;
+            padding-left: 50px;
+        }
+        #laps {
+            position: absolute;
+            top: 90%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            list-style: none;
+            padding: 0;
+        }
+        .lap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px;
+            background: #000000;
+            border: 2px solid white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 5px 1px white;
+            width: 400px;
+        }
+        .lap-note {
+            font-size: 20px;
+            color: aqua;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
-    <div id="stopwatch" style="color: rgb(34, 255, 0); font-weight: bold;">
-        00:00:00
-    </div>
+    <div id="stopwatch">00:00:00</div>
     <ul id="buttons">
         <li><button id="start_pause" onclick="runTimer()">Start</button></li>
         <li><button onclick="resetTimer()">Reset</button></li>
+        <li><button onclick="createLap()">Lap</button></li>
     </ul>
+    <ul id="laps"></ul>
     <script>
-        document.addEventListener("keydown",function(e){"Space"===e.code&&runTimer()});const timer=document.getElementById("stopwatch"),timer_on_title=document.getElementById("stopwatch_on_title"),start_pause_button=document.getElementById("start_pause");var hr=0,min=0,sec=0,stoptime=!0;function runTimer(){1==stoptime?(stoptime=!1,timerCycle(),start_pause_button.innerHTML="Pause"):(stoptime=!0,start_pause_button.innerHTML="Resume")}function timerCycle(){0==stoptime&&(sec=parseInt(sec),min=parseInt(min),hr=parseInt(hr),60==(sec+=1)&&(min+=1,sec=0),60==min&&(hr+=1,min=0,sec=0),(sec<10||0==sec)&&(sec="0"+sec),(min<10||0==min)&&(min="0"+min),(hr<10||0==hr)&&(hr="0"+hr),timer.innerHTML=hr+":"+min+":"+sec,timer_on_title.innerHTML=hr+":"+min+":"+sec,setTimeout("timerCycle()",1e3))}function resetTimer(){timer.innerHTML="00:00:00",timer_on_title.innerHTML="00:00:00",start_pause_button.innerHTML="Start",stoptime=!0,hr=0,sec=0,min=0}
-    </script>
+        document.addEventListener("keydown", function(e) {
+            if ("Space" === e.code) {
+                runTimer();
+            }
+        });
+        const timer = document.getElementById("stopwatch");
+        const timer_on_title = document.getElementById("stopwatch_on_title");
+        const start_pause_button = document.getElementById("start_pause");
+        let hr = 0, min = 0, sec = 0, stoptime = true, laps = [];
+
+        function runTimer() {
+            if (stoptime) {
+                stoptime = false;
+                timerCycle();
+                start_pause_button.innerHTML = "Pause";
+            } else {
+                stoptime = true;
+                start_pause_button.innerHTML = "Resume";
+            }
+        }
+
+        function timerCycle() {
+            if (!stoptime) {
+                sec = parseInt(sec);
+                min = parseInt(min);
+                hr = parseInt(hr);
+                if (sec == 60) {
+                    min += 1;
+                    sec = 0;
+                }
+                if (min == 60) {
+                    hr += 1
+                    min = 0;
+            }
+            sec = (sec < 10) ? "0" + sec : sec;
+            min = (min < 10) ? "0" + min : min;
+            hr = (hr < 10) ? "0" + hr : hr;
+
+            const time = hr + ":" + min + ":" + sec;
+            timer.innerHTML = time;
+            timer_on_title.innerHTML = time;
+
+            sec = parseInt(sec) + 1;
+            setTimeout("timerCycle()", 1000);
+        }
+    }
+
+    function resetTimer() {
+        stoptime = true;
+        hr = 0;
+        min = 0;
+        sec = 0;
+        timer.innerHTML = "00:00:00";
+        start_pause_button.innerHTML = "Start";
+        laps = [];
+        updateLaps();
+    }
+
+    function createLap() {
+        if (!stoptime) {
+            const lapTime = timer.innerHTML;
+            const note = prompt("Add a note (optional)");
+            const lap = { time: lapTime, note: note };
+            laps.push(lap);
+            updateLaps();
+        }
+    }
+
+    function updateLaps() {
+        const lapsList = document.getElementById("laps");
+        lapsList.innerHTML = "";
+        for (let i = 0; i < laps.length; i++) {
+            const lap = laps[i];
+            const li = document.createElement("li");
+            li.setAttribute("class", "lap");
+            const lapIndex = i + 1;
+            li.innerHTML = "<div>Lap " + lapIndex + ": " + lap.time + "</div>";
+            if (lap.note) {
+                li.innerHTML += "<div class='lap-note'>" + lap.note + "</div>";
+            }
+            lapsList.appendChild(li);
+        }
+    }
+</script>
+
 </body>
 </html>
